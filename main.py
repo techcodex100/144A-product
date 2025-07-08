@@ -8,7 +8,7 @@ import os
 
 app = FastAPI(
     title="ECGC Form 144A PDF Generator",
-    description="Generate filled PDF for Form 144A with optional visual grid.",
+    description="Generate filled PDF for Form 144A.",
     version="1.0.0"
 )
 
@@ -64,8 +64,6 @@ class ECGCFormData(BaseModel):
     payment_due_date: Optional[str] = ""
     realisation_date: Optional[str] = ""
     reason_delay: Optional[str] = ""
-    
-    # New fields for Page 3
     related_to_you: Optional[str] = ""
     percent_shareholding: Optional[str] = ""
     buyers_shareholding: Optional[str] = ""
@@ -87,23 +85,6 @@ def generate_ecgc_pdf(data: ECGCFormData):
     c.setFont("Times-Roman", 14)
     c.setFillColorRGB(0, 0, 0)
 
-    # Draw visual grid
-    def draw_grid():
-        c.setStrokeColorRGB(0.85, 0.85, 0.85)
-        c.setFont("Helvetica", 6)
-        step = 50
-
-        for x in range(0, int(width), step):
-            c.line(x, 0, x, height)
-            c.drawString(x + 2, 5, str(x))
-
-        for y in range(0, int(height), step):
-            c.line(0, y, width, y)
-            c.drawString(2, y + 2, str(y))
-
-        c.setStrokeColorRGB(0, 0, 0)
-
-    # Image paths
     base_dir = os.path.dirname(__file__)
     page1 = os.path.join(base_dir, "static", "1.png")
     page2 = os.path.join(base_dir, "static", "2.png")
@@ -111,7 +92,6 @@ def generate_ecgc_pdf(data: ECGCFormData):
 
     # Page 1
     c.drawImage(page1, 0, 0, width=width, height=height)
-    draw_grid()
     c.drawString(250, 330, data.policyholder)
     c.drawString(170, 230, data.policy_number)
     c.drawString(190, 205, data.policy_from)
@@ -122,7 +102,6 @@ def generate_ecgc_pdf(data: ECGCFormData):
 
     # Page 2
     c.drawImage(page2, 0, 0, width=width, height=height)
-    draw_grid()
     c.drawString(220, 830, data.buyer_name)
     c.drawString(150, 810, data.buyer_address)
     c.drawString(130, 780, data.buyer_city)
@@ -165,7 +144,6 @@ def generate_ecgc_pdf(data: ECGCFormData):
 
     # Page 3
     c.drawImage(page3, 0, 0, width=width, height=height)
-    draw_grid()
     c.drawString(160, 555, data.cheque_no)
     c.drawString(260, 555, data.cheque_date)
     c.drawString(400, 555, data.cheque_for)
@@ -189,5 +167,5 @@ def generate_ecgc_pdf(data: ECGCFormData):
     return Response(
         content=buffer.read(),
         media_type="application/pdf",
-        headers={"Content-Disposition": "attachment; filename=ecgc_form_144A_with_grid.pdf"}
+        headers={"Content-Disposition": "attachment; filename=ecgc_form_144A.pdf"}
     )
